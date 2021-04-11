@@ -1,0 +1,10 @@
+version: '3.6'
+
+hass:
+    image: homeassistant/home-assistant:latest
+    ports:
+      - 8123:8123
+    volumes:
+        - /volume2/docker/hass/config:/config
+    environment:
+      TZ: Europe/Bratislava
