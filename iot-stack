@@ -1,6 +1,7 @@
 version: '3.6'
 
-hass:
+services:
+  hass:
     image: homeassistant/home-assistant:latest
     ports:
       - 8123:8123
