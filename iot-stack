@@ -9,3 +9,63 @@ services:
         - /volume2/docker/hass/config:/config
     environment:
       TZ: Europe/Bratislava
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+        - /volume2/docker/prometheus/etc:/etc/prometheus
+    environment:
+      TZ: Europe/Bratislava
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3003:3000
+    volumes:
+        - /volume2/docker/grafana/var/lib/grafana:/var/lib/grafana
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt
+    ports:
+      - 8088:8080
+    volumes:
+        - /volume2/docker/zigbee2mqtt:/app/data
+    environment:
+      TZ: Europe/Bratislava
+  nodered:
+    image: nodered/node-red:latest
+    ports:
+      - 1880:1880
+    volumes:
+        - /volume2/docker/nodered:/data
+    environment:
+      TZ: Europe/Bratislava
+  eclipse-mqtt:
+    image: eclipse-mosquitto:latest
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+        - /volume2/docker/eclipse-mosquitto:/mosquitto
+    environment:
+      TZ: Europe/Bratislava      
+  unifi-controller:
+    image: jacobalberty/unifi:latest
+    ports:
+      - 3478:3478
+      - 6789:6789
+      - 8080:8080
+      - 8443:8443
+      - 8843:8843
+      - 8881:8880
+    volumes:
+        - /volume2/docker/unifi:/unifi
+    environment:
+      TZ: Europe/Bratislava        
+  unifi-poller:
+    image: golift/unifi-poller:latest
+    ports:
+      - 9130:9130
+    volumes:
+        - /volume2/docker/unifi-poller/config:/config
+    environment:
+      TZ: Europe/Bratislava     
