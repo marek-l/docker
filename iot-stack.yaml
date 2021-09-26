@@ -1,6 +1,7 @@
 version: '3.8'
 
 x-stack-defaults:
+  &default-app
   restart: always
   pull_policy: always
   environment:
