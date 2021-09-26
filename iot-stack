@@ -1,71 +1,105 @@
 version: '3.6'
 
+x-stack-defaults:
+  restart: always
+  pull_policy: always
+  environment:
+      TZ: Europe/Bratislava
 services:
   hass:
-    image: homeassistant/home-assistant:latest
+    <<: *default-app
+    image: homeassistant/home-assistant:2021.9
     ports:
       - 8123:8123
     volumes:
         - /volume2/docker/hass/config:/config
-    environment:
-      TZ: Europe/Bratislava
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hassrouter.rule=Host(`hass.lan`)
+      - traefik.http.routers.hassrouter.tls=true
+
   prometheus:
-    image: prom/prometheus:latest
+    <<: *default-app
+    image: prom/prometheus:v2.30.0
     ports:
-      - 9090:9090
+       - 9090:9090
     volumes:
         - /volume2/docker/prometheus/etc:/etc/prometheus
-    environment:
-      TZ: Europe/Bratislava
   grafana:
+    <<: *default-app
     image: grafana/grafana:latest
     ports:
       - 3003:3000
     volumes:
         - /volume2/docker/grafana/var/lib/grafana:/var/lib/grafana
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafanarouter.rule=Host(`grafana.lan`)
+      - traefik.http.routers.grafanarouter.tls=true
   zigbee2mqtt:
-    image: koenkk/zigbee2mqtt
+    <<: *default-app
+    image: koenkk/zigbee2mqtt:1.20.0
     ports:
-      - 8088:8080
+       - 8085:8085
     volumes:
         - /volume2/docker/zigbee2mqtt:/app/data
-    environment:
-      TZ: Europe/Bratislava
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.zigbee2mqttrouter.rule=Host(`zigbee2mqtt.lan`)
+      - traefik.http.routers.zigbee2mqttrouter.tls=true
   nodered:
-    image: nodered/node-red:latest
+    <<: *default-app
+    image: marekl/nodered:latest
     ports:
       - 1880:1880
     volumes:
         - /volume2/docker/nodered:/data
-    environment:
-      TZ: Europe/Bratislava
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nodered.rule=Host(`nodered.lan`)
+      - traefik.http.routers.nodered.tls=true
   eclipse-mqtt:
+    <<: *default-app
     image: eclipse-mosquitto:latest
     ports:
       - 1883:1883
       - 9001:9001
     volumes:
         - /volume2/docker/eclipse-mosquitto:/mosquitto
-    environment:
-      TZ: Europe/Bratislava      
-  unifi-controller:
+  unifi:
+    <<: *default-app
     image: jacobalberty/unifi:latest
     ports:
-      - 3478:3478
-      - 6789:6789
-      - 8080:8080
+      # web GUI port
       - 8443:8443
+      # STUN port
+      - 3478:3478
+      # UniFi mobile speed test port
+      - 6789:6789
+      # inform port
+      - 8081:8080
+      # Port used for HTTPS portal redirection
       - 8843:8843
+      # Port used for HTTP portal redirection
       - 8881:8880
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.unifi.rule=Host(`unifi.lan`)
+      - traefik.http.routers.unifi.tls=true
+      - traefik.http.services.unifi.loadbalancer.server.port=8443
+      - traefik.http.services.unifi.loadbalancer.server.scheme=https
     volumes:
         - /volume2/docker/unifi:/unifi
     environment:
-      TZ: Europe/Bratislava        
-  unifi-poller:
-    image: golift/unifi-poller:latest
-    ports:
-      - 9130:9130
+      RUNAS_UID0: "true"
+  traefik:
+    <<: *default-app
+    image: traefik:v2.4.6
+    network_mode: host
     volumes:
-        - /volume2/docker/unifi-poller/config:/config
-    environment:
-      TZ: Europe/Bratislava     
+      - /volume2/docker/traefik/traefik.yml:/etc/traefik/traefik.yml
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      # my own ssl certs
+      - /volume2/docker/traefik/certs.yml:/etc/traefik/dynamic/certs-traefik.yaml
+      - /volume2/docker/traefik/certs/:/etc/certs/
