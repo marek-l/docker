@@ -60,7 +60,7 @@ services:
       - traefik.http.routers.nodered.tls=true
   eclipse-mqtt:
     <<: *default-app
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2.0.12
     ports:
       - 1883:1883
       - 9001:9001
@@ -68,7 +68,7 @@ services:
         - /volume2/docker/eclipse-mosquitto:/mosquitto
   unifi:
     <<: *default-app
-    image: jacobalberty/unifi:latest
+    image: jacobalberty/unifi:v6.2
     ports:
       # web GUI port
       - 8443:8443
